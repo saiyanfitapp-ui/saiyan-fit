@@ -28,7 +28,7 @@
     }
   };
 
-  const boot = () => { const s = document.createElement('script'); s.src = '/app.js?v=2'; document.body.appendChild(s); };
+  const boot = () => { const s = document.createElement('script'); s.src = '/app.js?v=3'; document.body.appendChild(s); };
   fetch('/api/state', { cache: 'no-store' })
     .then(r => r.ok ? r.json() : null)
     .then(j => { if (j) { window.__SF_STATE = j.data && Object.keys(j.data).length ? j.data : null; window.__SF_CHAT = j.chat || null; window.__SF_HEALTH = j.health || null; } })

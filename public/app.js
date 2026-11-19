@@ -446,7 +446,7 @@ function hkSheet(){
     <p class="tiny" style="color:var(--ink-2)">Un Comando rapido sull’iPhone legge Salute ogni sera e manda i dati a Saiyan Fit. Prima genera il tuo codice personale.</p>
     <div class="card stack s12" style="background:var(--surface-2);box-shadow:none" id="hkBox">
       <button class="btn ai block" data-hkgen="1">Genera il mio codice</button>
-      <span class="tiny">Il codice si vede una volta sola. Se lo rigeneri, quello vecchio smette di funzionare.</span>
+      <p class="err" id="hkErr" role="alert" hidden></p><span class="tiny">Il codice si vede una volta sola. Se lo rigeneri, quello vecchio smette di funzionare.</span>
     </div>
     <h3>Crea il Comando rapido</h3>
     ${step(1,'Apri <b>Comandi</b> → <b>Automazione</b> → <b>+</b> → <b>Ora del giorno</b>: 23:30, ogni giorno, <b>Esegui subito</b>.')}
@@ -461,9 +461,9 @@ function hkSheet(){
 }
 async function hkGen(btn){
   btn.disabled=true;btn.textContent='Genero…';
-  try{const r=await fetch('/api/health/token',{method:'POST'});if(!r.ok)throw 0;const {token}=await r.json();
+  try{const r=await fetch('/api/health/token',{method:'POST'});const j=await r.json().catch(()=>({}));if(!r.ok)throw j.error||'Errore '+r.status;const {token}=j;
     $('#hkBox').innerHTML=`<span class="tiny">Il tuo codice personale</span><div class="num" style="font-size:15px;word-break:break-all;user-select:all">${esc(token)}</div><button class="btn ai block" data-copy="Bearer ${esc(token)}">Copia «Bearer + codice»</button><span class="tiny">Incollalo nell’intestazione Authorization del Comando. Non condividerlo.</span>`;
-  }catch(_){btn.disabled=false;btn.textContent='Genera il mio codice';toast('Non sono riuscito a generare il codice, riprova')}
+  }catch(e){btn.disabled=false;btn.textContent='Genera il mio codice';const m=typeof e==='string'?e:'Non sono riuscito a generare il codice, riprova';const n=$('#hkErr');if(n){n.textContent=m;n.hidden=false}else toast(m)}
 }
 function openSheet(title,html){
   lastFocus=document.activeElement;
