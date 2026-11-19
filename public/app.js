@@ -34,7 +34,7 @@ const MEAL_ICON={col:I.cup,pra:I.bowl,spu:I.apple,cen:I.moon};
 
 const KEY='tempra-v2';
 let saved=window.__SF_STATE||null;if(!saved){try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(_){saved={}}}
-function persist(){try{const media={};for(const k in S.media)media[k]=S.media[k].filter(m=>m.type!=='video');const data={profile:S.profile,goal:S.goal,media,custom:S.custom,photos:S.photos,shop:S.shop,weights:SERIES.peso.v};if(window.SF)window.SF.save(data);localStorage.setItem(KEY,JSON.stringify(data))}catch(_){toast('Memoria del browser piena: alcune foto non verranno ricordate')}}
+function persist(){try{const media={};for(const k in S.media)media[k]=S.media[k].filter(m=>m.type!=='video');const data={profile:S.profile,goal:S.goal,media,custom:S.custom,photos:S.photos,shop:S.shop,weights:SERIES.peso.v,hkWDay};if(window.SF)window.SF.save(data);localStorage.setItem(KEY,JSON.stringify(data))}catch(_){toast('Memoria del browser piena: alcune foto non verranno ricordate')}}
 
 const now=new Date();
 const todayIdx=(now.getDay()+6)%7;
@@ -125,7 +125,9 @@ const LIB=[
   {n:'Ab wheel',m:'Core',a:'Attrezzo',pr:'3 × 12',cues:['Bacino in retroversione','Vai solo fin dove controlli','Rientra con gli addominali']}
 ];
 const allEx=()=>LIB.concat(S.custom);
-const HEALTH=Object.assign({steps:7450,active:540,sleep:7.2,hr:58},window.__SF_HEALTH||{});
+const HK_REAL=!!(window.__SF_HEALTH&&Object.keys(window.__SF_HEALTH).length);
+const HEALTH=HK_REAL?Object.assign({steps:0,active:0,sleep:0,hr:'–'},window.__SF_HEALTH):{steps:7450,active:540,sleep:7.2,hr:58};
+const hkDay=()=>{if(!HEALTH.day)return '';const d=new Date(HEALTH.day+'T12:00:00'),t=new Date();t.setHours(12,0,0,0);const n=Math.round((t-d)/864e5);return n<=0?'oggi':n===1?'ieri':d.toLocaleDateString('it-IT',{day:'numeric',month:'short'})};
 const PER100={'Yogurt greco 0%':[57,10,3.6,0.2],'Granola':[450,10,64,15],'Frutti di bosco':[45,0.8,9,0.3],'Petto di pollo':[110,23,0,1.5],'Riso basmati cotto':[130,2.7,28,0.3],'Verdure grigliate':[35,1.5,5,0.8],'Olio extravergine':[899,0,0,100],'Mela':[52,0.3,14,0.2],'Mandorle':[580,21,22,50]};
 const DETECT={col:[['Yogurt greco 0%',170],['Granola',30],['Frutti di bosco',80]],pra:[['Petto di pollo',160],['Riso basmati cotto',180],['Verdure grigliate',150],['Olio extravergine',10]],spu:[['Mela',180],['Mandorle',20]],cen:[['Petto di pollo',160],['Riso basmati cotto',180],['Verdure grigliate',150],['Olio extravergine',10]]};
 const BARCODES={'8001234567890':['Skyr naturale',150,[63,11,4,0.2]],'8009876543210':['Barretta proteica cioccolato',55,[360,36,30,10]],'8005551112223':['Gallette di riso integrale',25,[380,8,80,3]],'8007778889990':['Fesa di tacchino a fette',100,[100,22,1,1]]};
@@ -138,6 +140,9 @@ const SERIES={
   panca:{label:'Panca piana · 1RM stimato',unit:'kg',v:[88,88,90,90,91,92,92,93,94,94,95,96]},
   squat:{label:'Squat · 1RM stimato',unit:'kg',v:[112,114,114,116,117,118,120,120,122,123,124,126]}
 };
+// Peso arrivato da Salute: lo aggiungo una volta per giorno
+let hkWDay=saved.hkWDay||null;
+if(HK_REAL&&HEALTH.weight&&HEALTH.day&&hkWDay!==HEALTH.day){SERIES.peso.v.push(+HEALTH.weight);if(SERIES.peso.v.length>30)SERIES.peso.v.shift();S.profile.weight=+HEALTH.weight;hkWDay=HEALTH.day;setTimeout(()=>persist(),0)}
 
 /* calcoli */
 const bmr=()=>{const p=S.profile;return 10*p.weight+6.25*p.height-5*p.age+(p.sex==='M'?5:-161)};
@@ -237,7 +242,7 @@ function vOggi(){
       <div class="tile"><span class="eyebrow">Acqua</span><div class="v num">${fmt(S.water*0.25,2)} <small>/ 2,5 L</small></div>
         <div class="water" role="group" aria-label="Bicchieri d’acqua da 250 ml">${Array.from({length:10},(_,i)=>`<button class="${i<S.water?'on':''}" data-water="${i}" aria-label="${i+1} bicchieri"></button>`).join('')}</div></div>
     </div>
-    <div class="stack s8"><div class="src"><span class="hk"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.3-9.5C1.4 7.9 3.8 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.5 0 5.9 3.4 4.6 7-1.8 4.9-9.3 9.5-9.3 9.5z"/></svg>Da Salute · Apple Watch</span><span class="example">Esempio</span></div>
+    <div class="stack s8"><div class="src"><span class="hk"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.3-9.5C1.4 7.9 3.8 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.5 0 5.9 3.4 4.6 7-1.8 4.9-9.3 9.5-9.3 9.5z"/></svg>Da Salute · Apple Watch</span>${HK_REAL?`<span class="tiny">Aggiornato ${hkDay()}</span>`:`<button class="example" data-hk="1" style="cursor:pointer">Esempio · Collega</button>`}</div>
       <div class="bento3"><div class="tile"><span class="tiny">Passi</span><div class="v num">${fmt(HEALTH.steps,0)}</div><div class="bar"><i style="width:${pct(HEALTH.steps,10000)}%;background:var(--food)"></i></div></div><div class="tile"><span class="tiny">Calorie attive</span><div class="v num">${HEALTH.active}</div><span class="tiny">kcal</span></div><div class="tile"><span class="tiny">Sonno</span><div class="v num">${Math.floor(HEALTH.sleep)}h ${String(Math.round(HEALTH.sleep%1*60)).padStart(2,'0')}</div><span class="tiny">FC riposo ${HEALTH.hr}</span></div></div></div>
     <div class="card next-meal">
       <div class="thumb" style="background:${COL[next[0]][1]};color:${COL[next[0]][0]}">${MEAL_ICON[next[0]]}</div>
@@ -357,6 +362,11 @@ function vProfile(){
         <p class="err" id="wErr" hidden></p>
         ${spark(SERIES.peso.v,'var(--food)')}
         <span class="tiny">Ultime ${SERIES.peso.v.length} pesate</span>
+      </div>
+      <div class="card stack s12">
+        <div class="row between"><h3>Salute e Apple Watch</h3><span class="pill ${HK_REAL?'food':'ai'}">${HK_REAL?'Collegato':'Da collegare'}</span></div>
+        <p class="tiny" style="max-width:40ch">${HK_REAL?`Ultimi dati ricevuti ${hkDay()}: ${fmt(HEALTH.steps,0)} passi, ${HEALTH.active} kcal attive.`:'Ogni sera un Comando rapido sull’iPhone manda qui passi, calorie attive, sonno, battito a riposo e peso.'}</p>
+        <button class="btn soft block" data-hk="1">${HK_REAL?'Rivedi la configurazione':'Collega Salute'}</button>
       </div>`;
   } else if(tb==='obiettivo'){
     const g=S.goal,TT=T(),A=autoTargets(),wl=weeksLeft();
@@ -429,6 +439,32 @@ function reply(q){
 
 /* ---------- SHEETS ---------- */
 let lastFocus=null;
+const HK_URL=location.origin+'/api/health/ingest';
+function hkSheet(){
+  const step=(n,t)=>`<div class="row" style="gap:12px;align-items:flex-start"><span class="pill ai" style="flex:none">${n}</span><div class="tiny" style="color:var(--ink-2);line-height:1.5">${t}</div></div>`;
+  openSheet('Collega Salute',`<div class="stack s16">
+    <p class="tiny" style="color:var(--ink-2)">Un Comando rapido sull’iPhone legge Salute ogni sera e manda i dati a Saiyan Fit. Prima genera il tuo codice personale.</p>
+    <div class="card stack s12" style="background:var(--surface-2);box-shadow:none" id="hkBox">
+      <button class="btn ai block" data-hkgen="1">Genera il mio codice</button>
+      <span class="tiny">Il codice si vede una volta sola. Se lo rigeneri, quello vecchio smette di funzionare.</span>
+    </div>
+    <h3>Crea il Comando rapido</h3>
+    ${step(1,'Apri <b>Comandi</b> → <b>Automazione</b> → <b>+</b> → <b>Ora del giorno</b>: 23:30, ogni giorno, <b>Esegui subito</b>.')}
+    ${step(2,'Aggiungi <b>Trova campioni di Salute</b>: tipo <b>Passi</b>, data di inizio <b>oggi</b>. Poi <b>Calcola statistiche</b> → <b>Somma</b>. Rinomina il risultato in <i>passi</i>.')}
+    ${step(3,'Ripeti con <b>Energia attiva</b> (Somma) → <i>kcal</i>.')}
+    ${step(4,'<b>Trova campioni di Salute</b>: <b>Frequenza cardiaca a riposo</b>, ordina per data di inizio, ultimo prima, limite 1 → <i>fc</i>. Uguale per <b>Peso</b> → <i>peso</i>.')}
+    ${step(5,'Facoltativo: <b>Analisi del sonno</b> da ieri alle 18:00, solo <b>Addormentato</b>, <b>Calcola statistiche</b> → <b>Somma</b> della durata in ore → <i>sonno</i>.')}
+    ${step(6,`Aggiungi <b>Ottieni contenuti dell’URL</b> con l’indirizzo qui sotto. Metodo <b>POST</b>. Intestazione <b>Authorization</b> = <b>Bearer</b> + spazio + il tuo codice. Corpo <b>JSON</b> con i campi <b>steps</b>, <b>active_kcal</b>, <b>resting_hr</b>, <b>weight_kg</b>, <b>sleep_h</b> e le variabili di prima.`)}
+    <div class="lnk"><button type="button" data-copy="${HK_URL}" style="text-align:left;flex:1;min-width:0;background:none;border:0;padding:0;color:inherit"><div class="t">Indirizzo (tocca per copiare)</div><div class="u" style="word-break:break-all">${esc(HK_URL)}</div></button></div>
+    ${step(7,'Premi ▶︎ per provarlo: deve rispondere <b>"ok": true</b>. Riapri l’app e il riquadro Salute mostra i tuoi dati veri.')}
+  </div>`);
+}
+async function hkGen(btn){
+  btn.disabled=true;btn.textContent='Genero…';
+  try{const r=await fetch('/api/health/token',{method:'POST'});if(!r.ok)throw 0;const {token}=await r.json();
+    $('#hkBox').innerHTML=`<span class="tiny">Il tuo codice personale</span><div class="num" style="font-size:15px;word-break:break-all;user-select:all">${esc(token)}</div><button class="btn ai block" data-copy="Bearer ${esc(token)}">Copia «Bearer + codice»</button><span class="tiny">Incollalo nell’intestazione Authorization del Comando. Non condividerlo.</span>`;
+  }catch(_){btn.disabled=false;btn.textContent='Genera il mio codice';toast('Non sono riuscito a generare il codice, riprova')}
+}
 function openSheet(title,html){
   lastFocus=document.activeElement;
   $('#sheetBody').innerHTML=`<div class="sheet-top"><h2 id="sheetTitle">${title}</h2><button class="icon-btn" data-close aria-label="Chiudi">${I.x}</button></div>${html}`;
@@ -635,6 +671,9 @@ document.addEventListener('click',e=>{
   else if(d.nut){S.nutTab=d.nut;render(true)}
   else if(d.gym){S.gymTab=d.gym;render(true)}
   else if(d.prof){S.profTab=d.prof;S.editGoal=false;render(true)}
+  else if(d.hk){hkSheet()}
+  else if(d.hkgen){hkGen(b)}
+  else if(d.copy){navigator.clipboard.writeText(d.copy).then(()=>toast('Copiato'),()=>toast('Tieni premuto sul testo per copiarlo'))}
   else if(d.exf){S.exFilter=d.exf;render(true)}
   else if(d.recf){S.recFilter=d.recf;render(true)}
   else if(d.chart){S.chart=d.chart;render(true)}

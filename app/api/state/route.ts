@@ -6,10 +6,10 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'login richiesto' }, { status: 401 });
   const [st, h] = await Promise.all([
     sb.from('app_state').select('data, chat').eq('user_id', user.id).maybeSingle(),
-    sb.from('health_daily').select('day, steps, active_kcal, sleep_h, resting_hr').eq('user_id', user.id).order('day', { ascending: false }).limit(1).maybeSingle()
+    sb.from('health_daily').select('day, steps, active_kcal, sleep_h, resting_hr, weight_kg').eq('user_id', user.id).order('day', { ascending: false }).limit(1).maybeSingle()
   ]);
   const d = h.data;
-  const health = d ? Object.fromEntries(Object.entries({ steps: d.steps, active: d.active_kcal, sleep: d.sleep_h == null ? null : Number(d.sleep_h), hr: d.resting_hr, day: d.day }).filter(([, v]) => v != null)) : null;
+  const health = d ? Object.fromEntries(Object.entries({ steps: d.steps, active: d.active_kcal, sleep: d.sleep_h == null ? null : Number(d.sleep_h), hr: d.resting_hr, weight: d.weight_kg == null ? null : Number(d.weight_kg), day: d.day }).filter(([, v]) => v != null)) : null;
   return NextResponse.json({ data: st.data?.data ?? null, chat: st.data?.chat ?? null, health });
 }
 

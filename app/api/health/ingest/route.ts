@@ -6,7 +6,11 @@ export const runtime = 'nodejs';
 
 const num = (v: unknown) => {
   if (v === null || v === undefined || v === '') return null;
-  const n = typeof v === 'number' ? v : parseFloat(String(v).replace(',', '.'));
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  // Comandi rapidi in italiano può mandare "8.240 passi" o "78,4 kg"
+  let t = String(v).trim().replace(/[^\d.,-]/g, '');
+  if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(t)) t = t.replace(/\./g, '');
+  const n = parseFloat(t.replace(',', '.'));
   return Number.isFinite(n) ? n : null;
 };
 
