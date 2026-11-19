@@ -380,3 +380,73 @@ p{margin:0}
 .login{min-height:100dvh;display:grid;place-items:center;padding:24px 16px;background:var(--bg)}
 .login-card{width:100%;max-width:380px;background:var(--surface);border-radius:var(--r-lg);padding:28px 22px;box-shadow:var(--shadow)}
 .login-card .brand{display:flex;align-items:center;gap:10px;font-family:Outfit,sans-serif;font-weight:800}
+
+/* ===== Tema Saiyan: aura Ki, Scouter, trasformazioni (elementi originali) ===== */
+:root{--aura:#F2B705;--aura-2:#FFE27A}
+:root[data-lvl="0"]{--aura:#9FB3C8;--aura-2:#E2E8F0}
+:root[data-lvl="1"]{--aura:#F2B705;--aura-2:#FFE27A}
+:root[data-lvl="2"]{--aura:#FACC15;--aura-2:#FEF08A}
+:root[data-lvl="3"]{--aura:#22D3EE;--aura-2:#A5F3FC}
+:root[data-lvl="4"]{--aura:#A78BFA;--aura-2:#E9D5FF}
+
+/* Avatar con aura che pulsa */
+.top-actions .ava{position:relative;overflow:visible;isolation:isolate}
+.top-actions .ava img{border-radius:50%}
+.top-actions .ava::before{content:"";position:absolute;inset:-5px;border-radius:50%;z-index:-1;background:conic-gradient(from 0deg,var(--aura),var(--aura-2),var(--aura),transparent 60%,var(--aura));filter:blur(5px);opacity:.85;animation:kiSpin 3.2s linear infinite}
+@keyframes kiSpin{to{transform:rotate(360deg)}}
+
+/* Hero obiettivo: linee di velocità + fiamme d'aura */
+.goal-hero{isolation:isolate}
+.goal-hero::before{content:"";position:absolute;inset:-40%;z-index:-1;background:repeating-conic-gradient(from 0deg at 85% 15%,rgba(255,255,255,.07) 0 2deg,transparent 2deg 9deg);pointer-events:none}
+.goal-hero::after{background:radial-gradient(circle,color-mix(in srgb,var(--aura) 55%,transparent),transparent 70%)!important;animation:kiFlicker 2.4s ease-in-out infinite}
+@keyframes kiFlicker{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.12);opacity:1}}
+.goal-hero .bolt{position:absolute;width:26px;height:40px;color:var(--aura-2);opacity:0;pointer-events:none;filter:drop-shadow(0 0 6px var(--aura))}
+:root[data-lvl="2"] .goal-hero .bolt,:root[data-lvl="3"] .goal-hero .bolt,:root[data-lvl="4"] .goal-hero .bolt{animation:kiBolt 3.6s steps(1) infinite}
+.goal-hero .bolt.b2{animation-delay:1.3s!important;right:38%!important;top:52%!important;transform:scaleX(-1) rotate(-12deg)}
+@keyframes kiBolt{0%,6%{opacity:0}7%,11%{opacity:1}12%,100%{opacity:0}}
+.gbar i{background:linear-gradient(90deg,var(--aura),var(--aura-2))!important;box-shadow:0 0 12px color-mix(in srgb,var(--aura) 70%,transparent)}
+.lvl.on{background:var(--aura)!important;box-shadow:0 0 8px color-mix(in srgb,var(--aura) 60%,transparent)}
+
+/* Titoli in stile manga */
+h1{letter-spacing:-.02em}
+.manga{font-family:var(--f-display);font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:.02em;-webkit-text-stroke:1px rgba(0,0,0,.25);text-shadow:2px 2px 0 rgba(0,0,0,.18)}
+
+/* Scouter: scansione e numeri che scorrono */
+.scouter::after{content:"";position:absolute;left:0;right:0;height:38%;top:-40%;background:linear-gradient(180deg,transparent,rgba(74,222,128,.12),transparent);animation:scan 3.8s linear infinite;pointer-events:none}
+@keyframes scan{to{top:110%}}
+.scouter .reticle{animation:reticle 4s ease-in-out infinite}
+.scouter .reticle::before,.scouter .reticle::after{content:"";position:absolute;background:rgba(74,222,128,.55)}
+.scouter .reticle::before{left:50%;top:-8px;bottom:-8px;width:1px}
+.scouter .reticle::after{top:50%;left:-8px;right:-8px;height:1px}
+@keyframes reticle{0%,100%{transform:translate(0,0)}25%{transform:translate(-14px,10px)}60%{transform:translate(-4px,22px)}}
+.scouter.over{background:radial-gradient(120% 140% at 0% 0%,#3B0E0E 0%,#170505 60%);color:#FECACA}
+.scouter.over .pw{color:#F87171;text-shadow:0 0 22px rgba(248,113,113,.7);animation:glitch .5s steps(2) 3}
+.scouter.over .eyebrow,.scouter.over .hint,.scouter.over .part .n{color:#FCA5A5}
+.scouter.over .part .b{background:rgba(248,113,113,.18)}.scouter.over .part .b i{background:#F87171}
+.scouter.over .reticle{border-color:rgba(248,113,113,.6)}.scouter.over .reticle::before,.scouter.over .reticle::after{background:rgba(248,113,113,.6)}
+.scouter .o9{position:absolute;right:14px;bottom:14px;font-family:var(--f-display);font-weight:800;font-style:italic;font-size:15px;color:#FEE2E2;background:#DC2626;padding:4px 10px;border-radius:8px;transform:rotate(-4deg);box-shadow:0 0 18px rgba(220,38,38,.6)}
+@keyframes glitch{0%{transform:translate(0)}50%{transform:translate(-2px,1px) skewX(-6deg)}100%{transform:translate(2px,-1px)}}
+
+/* Raffica di Ki (particelle) */
+.ki{position:fixed;left:0;top:0;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:90;background:radial-gradient(circle,#fff 0 30%,var(--c,var(--aura)) 60%,transparent 70%);box-shadow:0 0 10px var(--c,var(--aura));animation:kiFly .7s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes kiFly{from{transform:translate(var(--x0),var(--y0)) scale(1);opacity:1}to{transform:translate(var(--x1),var(--y1)) scale(.2);opacity:0}}
+.set.done{box-shadow:0 0 0 2px color-mix(in srgb,var(--aura) 55%,transparent),0 0 14px color-mix(in srgb,var(--aura) 35%,transparent)}
+
+/* Trasformazione a schermo intero */
+.transform-fx{position:fixed;inset:0;z-index:100;display:grid;place-items:center;pointer-events:none;background:radial-gradient(circle at 50% 55%,color-mix(in srgb,var(--aura-2) 90%,transparent),color-mix(in srgb,var(--aura) 75%,transparent) 35%,rgba(11,27,63,.92) 75%);animation:tfx 2.6s ease forwards}
+.transform-fx .rays{position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.35) 0 3deg,transparent 3deg 12deg);animation:kiSpin 6s linear infinite}
+.transform-fx .t{position:relative;text-align:center;color:#fff;animation:tfxText 2.6s ease forwards}
+.transform-fx .t small{display:block;font-size:13px;letter-spacing:.2em;text-transform:uppercase;opacity:.85}
+.transform-fx .t b{display:block;font-family:var(--f-display);font-weight:800;font-style:italic;font-size:40px;line-height:1;text-transform:uppercase;text-shadow:0 0 24px var(--aura),3px 3px 0 rgba(0,0,0,.35)}
+@keyframes tfx{0%{opacity:0}10%{opacity:1}75%{opacity:1}100%{opacity:0}}
+@keyframes tfxText{0%{transform:scale(.4)}18%{transform:scale(1.12)}26%{transform:scale(1)}100%{transform:scale(1.04)}}
+.shake{animation:shake .45s linear 2}
+@keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-2px,-1px)}80%{transform:translate(2px,1px)}}
+
+/* Gravity Room: indicatore ×G */
+.gmeter{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--r-lg);background:linear-gradient(135deg,#0B1B3F,#132E6B);color:#DBEAFE;position:relative;overflow:hidden}
+.gmeter::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 2px,transparent 2px 10px);pointer-events:none}
+.gmeter .g{font-family:var(--f-display);font-weight:800;font-style:italic;font-size:30px;color:#fff;text-shadow:0 0 14px rgba(96,165,250,.7);min-width:92px}
+.gmeter .tiny{color:#BFDBFE}
+
+@media (prefers-reduced-motion: reduce){.ki,.transform-fx .rays,.goal-hero .bolt{display:none!important}.transform-fx{animation:tfx 2.6s steps(1) forwards}}

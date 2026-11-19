@@ -28,13 +28,13 @@ const I={
   bowl:`<svg viewBox="0 0 24 24" ${P}><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M8 7c0-1.5 1-2 2-2M14 4c-1 1.5 0 2.5 1 3"/></svg>`,
   apple:`<svg viewBox="0 0 24 24" ${P}><path d="M12 7c-2-2-7-1.5-7 4 0 4 3 9 5 9 1 0 1.3-.5 2-.5s1 .5 2 .5c2 0 5-5 5-9 0-5.5-5-6-7-4z"/><path d="M12 7c0-2 1-3.5 3-4"/></svg>`,
   trash:`<svg viewBox="0 0 24 24" ${P}><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>`,
-  cart:`<svg viewBox="0 0 24 24" ${P}><path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>`
+  cart:`<svg viewBox="0 0 24 24" ${P}><rect x="3" y="7.5" width="18" height="9" rx="4.5"/><path d="M12 7.5v9M7 10.5v3"/></svg>`
 };
 const MEAL_ICON={col:I.cup,pra:I.bowl,spu:I.apple,cen:I.moon};
 
 const KEY='tempra-v2';
 let saved=window.__SF_STATE||null;if(!saved){try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(_){saved={}}}
-function persist(){try{const media={};for(const k in S.media)media[k]=S.media[k].filter(m=>m.type!=='video');const data={profile:S.profile,goal:S.goal,media,custom:S.custom,photos:S.photos,shop:S.shop,weights:SERIES.peso.v,hkWDay};if(window.SF)window.SF.save(data);localStorage.setItem(KEY,JSON.stringify(data))}catch(_){toast('Memoria del browser piena: alcune foto non verranno ricordate')}}
+function persist(){try{const media={};for(const k in S.media)media[k]=S.media[k].filter(m=>m.type!=='video');const data={profile:S.profile,goal:S.goal,media,custom:S.custom,photos:S.photos,shop:S.shop,weights:SERIES.peso.v,hkWDay,lastLvl};if(window.SF)window.SF.save(data);localStorage.setItem(KEY,JSON.stringify(data))}catch(_){toast('Memoria del browser piena: alcune foto non verranno ricordate')}}
 
 const now=new Date();
 const todayIdx=(now.getDay()+6)%7;
@@ -142,6 +142,7 @@ const SERIES={
 };
 // Peso arrivato da Salute: lo aggiungo una volta per giorno
 let hkWDay=saved.hkWDay||null;
+let lastLvl=saved.lastLvl==null?null:saved.lastLvl;
 if(HK_REAL&&HEALTH.weight&&HEALTH.day&&hkWDay!==HEALTH.day){SERIES.peso.v.push(+HEALTH.weight);if(SERIES.peso.v.length>30)SERIES.peso.v.shift();S.profile.weight=+HEALTH.weight;hkWDay=HEALTH.day;setTimeout(()=>persist(),0)}
 
 /* calcoli */
@@ -206,14 +207,14 @@ function platform(url){try{const h=new URL(url).hostname.replace(/^www\./,'');if
 const tab=(attr,cur,list)=>`<div class="seg" role="tablist">${list.map(([k,l])=>`<button role="tab" aria-selected="${cur===k}" data-${attr}="${k}">${l}</button>`).join('')}</div>`;
 
 /* ---------- OGGI ---------- */
-function scouterHTML(){const pw=power();return `<div class="scouter" role="group" aria-label="Scouter, livello di combattimento ${pw.total}"><span class="reticle" aria-hidden="true"></span><span class="eyebrow">Scouter · livello di combattimento</span><div><div class="pw num">${fmt(pw.total,0)}</div><div class="hint">${pw.total>9000?'È più di 9.000!':'Supera 9.000 chiudendo allenamento, proteine, passi e acqua'}</div></div><div class="parts">${pw.parts.map(p=>`<div class="part"><span>${p[0]}</span><span class="b"><i style="width:${Math.round(p[1]*100)}%"></i></span><span class="n">${fmt(Math.round(p[1]*p[2]),0)}</span></div>`).join('')}</div></div>`}
+function scouterHTML(){const pw=power();return `<div class="scouter${pw.total>9000?' over':''}" role="group" aria-label="Scouter, livello di combattimento ${pw.total}"><span class="reticle" aria-hidden="true"></span>${pw.total>9000?'<span class="o9" aria-hidden="true">OVER 9000!</span>':''}<span class="eyebrow">Scouter · livello di combattimento</span><div><div class="pw num" data-count="${pw.total}">${fmt(pw.total,0)}</div><div class="hint">${pw.total>9000?'È più di 9.000!':'Supera 9.000 chiudendo allenamento, proteine, passi e acqua'}</div></div><div class="parts">${pw.parts.map(p=>`<div class="part"><span>${p[0]}</span><span class="b"><i style="width:${Math.round(p[1]*100)}%"></i></span><span class="n">${fmt(Math.round(p[1]*p[2]),0)}</span></div>`).join('')}</div></div>`}
 function vOggi(){
   const t=totals(todayIdx),TT=T(),sd=setsDone(),st=setsTotal(),p=S.profile,wl=weeksLeft(),split=SPLIT[todayIdx],w=SERIES.peso.v;
   const next=MEALS.find(([id])=>!dayItems(todayIdx)[id].length)||MEALS[3];
   const pl=(S.plan[todayIdx]||{})[next[0]],pr=pl?scaled(pl.rid,pl.f):null;
   return `<section class="view stack">
     <div><p class="eyebrow">${esc(now.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'}))}</p><h1>Ciao ${esc(p.name)}</h1></div>
-    <a href="#profilo" class="goal-hero" data-goto-prof="obiettivo">
+    <a href="#profilo" class="goal-hero" data-goto-prof="obiettivo"><svg class="bolt" style="right:14%;top:18%" viewBox="0 0 26 40" aria-hidden="true"><path d="M15 0 3 22h8l-4 18L23 14h-9z" fill="currentColor"/></svg><svg class="bolt b2" viewBox="0 0 26 40" aria-hidden="true"><path d="M15 0 3 22h8l-4 18L23 14h-9z" fill="currentColor"/></svg>
       <div class="row between"><span class="eyebrow">Obiettivo · ${esc(S.goal.type)}</span>${wl!=null?`<span class="pill" style="background:rgba(127,140,150,.22);color:inherit">${wl} settimane</span>`:''}</div>
       <h2>${esc(S.goal.title)}</h2>
       ${lvlHTML()}
@@ -308,8 +309,9 @@ function mthumb(name){const m=S.media[name]||[],img=m.find(x=>x.type==='image');
 function vGym(){
   const tb=S.gymTab;let body='';
   if(tb==='scheda'){
-    const sd=setsDone(),st=setsTotal();
-    body=`<div class="card"><div class="row between" style="margin-bottom:12px"><h3>Push / Pull / Gambe</h3><span class="pill gym">Settimana 6 di 8</span></div>
+    const sd=setsDone(),st=setsTotal(),grav=Math.round(10+90*sd/Math.max(1,st));
+    body=`<div class="gmeter" role="group" aria-label="Gravità ${grav} volte"><span class="g num">×${grav}G</span><div><b>Gravity Room</b><div class="tiny">${sd===st?'Gravità massima raggiunta. Allenamento completato.':`Ogni serie completata alza la gravità. ${sd} di ${st} serie.`}</div></div></div>
+    <div class="card"><div class="row between" style="margin-bottom:12px"><h3>Push / Pull / Gambe</h3><span class="pill gym">Settimana 6 di 8</span></div>
       <div class="week">${DN.map((n,i)=>`<div class="day ${i===todayIdx?'today':''} ${i<todayIdx&&SPLIT[i]!=='Riposo'?'done':''}"><span>${n}</span><b>${SPLIT[i]==='Riposo'?'—':SPLIT[i].split(' ')[0]}</b><span class="dot"></span></div>`).join('')}</div><p class="tiny" style="margin-top:10px">La settimana 8 è di scarico: stessi esercizi con il 40% di serie in meno, per recuperare e ripartire più forte.</p></div>
       <div class="stack s8"><div class="row between"><div><h2>${WORKOUT.name}</h2><span class="tiny">${WORKOUT.focus} · ~${WORKOUT.min} min</span></div><span class="num muted" style="font-size:18px;font-weight:600">${sd}/${st}</span></div>
       <div class="prog"><i style="width:${pct(sd,st)}%"></i></div></div>
@@ -439,6 +441,16 @@ function reply(q){
 
 /* ---------- SHEETS ---------- */
 let lastFocus=null;
+const RM=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function kiBurst(el,n=14,color){if(RM()||!el)return;const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  for(let i=0;i<n;i++){const a=Math.PI*2*i/n+Math.random()*.4,d=30+Math.random()*50,k=document.createElement('span');k.className='ki';
+    k.style.setProperty('--x0',(cx-4)+'px');k.style.setProperty('--y0',(cy-4)+'px');k.style.setProperty('--x1',(cx-4+Math.cos(a)*d)+'px');k.style.setProperty('--y1',(cy-4+Math.sin(a)*d)+'px');if(color)k.style.setProperty('--c',color);
+    document.body.appendChild(k);setTimeout(()=>k.remove(),800)}}
+function transformFx(name){const f=document.createElement('div');f.className='transform-fx';f.setAttribute('role','status');
+  f.innerHTML=`<div class="rays"></div><div class="t"><small>Trasformazione</small><b>${esc(name)}!</b></div>`;document.body.appendChild(f);
+  $('.app').classList.add('shake');setTimeout(()=>$('.app').classList.remove('shake'),1000);setTimeout(()=>f.remove(),2700)}
+function countUp(){const el=document.querySelector('.scouter .pw[data-count]');if(!el||RM())return;const to=+el.dataset.count,t0=performance.now(),D=1100;
+  const step=t=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);el.textContent=fmt(Math.round(to*e+(k<1?Math.random()*40:0)),0);if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
 const HK_URL=location.origin+'/api/health/ingest';
 function hkSheet(){
   const step=(n,t)=>`<div class="row" style="gap:12px;align-items:flex-start"><span class="pill ai" style="flex:none">${n}</span><div class="tiny" style="color:var(--ink-2);line-height:1.5">${t}</div></div>`;
@@ -578,7 +590,9 @@ function render(keep){
   $('#topAva').innerHTML=avaHTML();
   document.querySelectorAll('.nav a').forEach(a=>{if(a.dataset.v===v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
   $('#composer').hidden=v!=='coach';
-  if(v==='oggi'){const pw=power().total;if(pw>9000&&!S.o9){S.o9=true;setTimeout(()=>toast('È più di 9.000! Livello di combattimento '+fmt(pw,0)),300)}}
+  if(v==='oggi'){const pw=power().total;if(pw>9000&&!S.o9){S.o9=true;setTimeout(()=>toast('È più di 9.000! Livello di combattimento '+fmt(pw,0)),300)}if(!keep)countUp()}
+  const lv=level();document.documentElement.dataset.lvl=lv;
+  if(lastLvl==null){lastLvl=lv;persist()}else if(lv>lastLvl){lastLvl=lv;persist();transformFx(LEVELS[lv])}else if(lv<lastLvl){lastLvl=lv;persist()}
   if(v==='coach')$('#quick').innerHTML=QUICK.map(q=>`<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join('');
   if(keep)window.scrollTo(0,y);
 }
@@ -693,7 +707,7 @@ document.addEventListener('click',e=>{
   else if(d.r2meal){const r=scaled(d.r2meal,1);dayItems(todayIdx)[r.m].push({n:r.n,q:'1 porzione',k:r.k,p:r.p,c:r.c,f:r.g});closeSheet();toast('Aggiunto a '+MEAL_NAME[r.m].toLowerCase());render(true)}
   else if(d.shop){const [g,i]=d.shop.split(':').map(Number);S.shop[g].items[i].d=!S.shop[g].items[i].d;persist();render(true)}
   else if(b.id==='clearShop'){S.shop.forEach(g=>g.items=g.items.filter(i=>!i.d));S.shop=S.shop.filter(g=>g.items.length);persist();render(true);toast('Lista aggiornata')}
-  else if(d.set){const was=S.done[d.set];S.done[d.set]=!was;if(!was)S.lastSet=d.set;render(true);if(!was){setsDone()===setsTotal()?(stopTimer(),toast('Allenamento completato, ottimo lavoro')):startTimer(+d.rest)}}
+  else if(d.set){const was=S.done[d.set];S.done[d.set]=!was;if(!was)S.lastSet=d.set;render(true);if(!was){kiBurst(document.querySelector(`[data-set="${d.set}"]`));setsDone()===setsTotal()?(stopTimer(),toast('Allenamento completato: la Gravity Room è tua'),kiBurst(document.querySelector('.gmeter'),28)):startTimer(+d.rest)}}
   else if(d.exname){exSheet(d.exname)}
   else if(b.id==='newEx'){newExSheet()}
   else if(d.exm){document.querySelectorAll('[data-exm]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}
